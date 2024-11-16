@@ -1,0 +1,100 @@
+What is the Intersection Observer API?
+The Intersection Observer API is a web API that allows you to asynchronously observe changes in the intersection of a target element with an ancestor element or the viewport.
+
+
+In simpler terms, it enables you to detect when an element enters or exits in an area of another DOM element or the viewport. Using Intersection Observer provides us with following advantages:
+
+
+const observer = new IntersectionObserver(callback, options);
+
+
+
+* callback is a function called when the observed element's visibility changes. This function takes two arguments: entries and the observer object itself. Each object in entries array is an IntersectionObserverEntry object that contains information about the observed element's intersection status.
+* options is an optional argument to further configure the Observer.
+
+
+The Intersection Observer API is a modern development technique that can detect when elements come into view, thereby triggering content loading for infinite scrolling. The Intersection Observer API observes changes in the intersection of target elements with an ancestor element or the viewport, making it well-suited to implement infinite scrolling.
+
+
+___________
+
+
+Working code for intersection observer -
+
+import React, { useEffect, useRef, useState } from 'react'
+import axios from 'axios'
+
+export default function Posts() {
+    const [posts, setPosts] = useState([])
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(10);
+    const divRef = useRef(null);
+
+    const fetchData = async () => {
+        const response = await axios.get(
+            `https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=${limit}`
+        );
+        setPosts(prev => [...prev, ...response.data])
+        setPage(prev => prev + 1)
+    }
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((enrties) => {
+            const data = enrties[0]
+            if (data.isIntersecting === true) {
+                fetchData()
+            }
+        }, {
+            threshold: 0.5
+        })
+        if (divRef.current) {
+            observer.observe(divRef.current);
+          }
+        return () => {
+            if (divRef.current) {
+              observer.unobserve(divRef.current);
+            }
+          };
+    }, [limit, page])
+
+
+    const clickBtn = () => {
+        setPage(1)
+        setLimit(10)
+    }
+
+    return (
+        <>
+            Hello from posts
+            <div>
+                {
+                    posts.map(item =>
+                        <div>
+                            <ul>
+                                <li> {
+                                    item.title
+                                }</li>
+                                <li> {
+                                    item.body
+                                }</li>
+                            </ul>
+
+                        </div>
+                    )
+                }
+                <div ref={divRef}>loading...</div>
+                <button onClick={clickBtn}>click me</button>
+            </div>
+        </>
+    )
+}
+
+
+
+
+
+______
+
+
+Note - 
+
